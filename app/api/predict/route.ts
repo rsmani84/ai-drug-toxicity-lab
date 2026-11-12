@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ smiles }), cache: "no-store"
     });
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    return NextResponse.json(response.ok ? data : { error: typeof data.detail === "string" ? data.detail : (data.error || "Prediction failed.") }, { status: response.status });
   } catch {
     return NextResponse.json({ error: "Could not connect to the AI prediction service. Please try again later." }, { status: 502 });
   }
