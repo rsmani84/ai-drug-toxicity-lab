@@ -1,0 +1,3 @@
+import type { Metadata } from "next"; import "./globals.css";
+export const metadata: Metadata = { title: "AI Virtual Lab | Drug Toxicity Prediction", description: "Educational machine-learning laboratory for exploring Tox21 assay classification and molecular descriptors." };
+export default function RootLayout({children}:{children:React.ReactNode}) { return <html lang="en"><body>{children}</body></html>; }
