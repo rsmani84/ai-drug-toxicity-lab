@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: ai-drug-toxicity-api
-    runtime: docker
-    plan: starter
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    healthCheckPath: /health
