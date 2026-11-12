@@ -1,27 +1,33 @@
-# AI Virtual Lab: Drug Toxicity Prediction
+# AI Drug Toxicity Prediction Virtual Lab
 
-Standalone Next.js teaching application for GitHub and Vercel.
+Students enter only a molecular SMILES string. The application returns predicted activity for the 12 Tox21 assay endpoints. The dataset and model-training workflow are not exposed in the student interface.
 
-## Current features
-- Explore the 12 Tox21 assay endpoints.
-- Upload faculty-prepared CSV data with SMILES, assay labels (1, 0, blank), and numeric descriptor columns.
-- Preserve blank labels as untested/missing, not inactive.
-- Fit an educational Gaussian Naive Bayes baseline using supplied descriptors.
-- Descriptor-based prediction sandbox and a short student knowledge check.
+## Architecture
+- Frontend: Next.js on Vercel.
+- Inference API: FastAPI + RDKit on Render (Docker).
+- Models: endpoint-specific Random Forest classifiers trained from Tox21 using DeepChem ECFP fingerprints.
+- Student input: SMILES only; Morgan fingerprints are generated automatically by RDKit.
 
-## Public dataset
-Official NIH/NCATS Tox21 challenge data: https://tripod.nih.gov/tox21/challenge/data.jsp
+## Deploy prediction API
+1. In Render, create a new Blueprint and connect this repository.
+2. Render reads `render.yaml`, builds the Docker image, downloads/loads Tox21 through DeepChem and trains 12 endpoint models.
+3. Wait for the build to finish. Confirm `https://YOUR-API.onrender.com/health` reports `model_ready: true`.
+4. Note the service URL.
 
-The app does not automatically download or preprocess the public dataset. Prepare a CSV with a `smiles` column, one or more endpoint columns, and numeric descriptors such as MW, LogP, TPSA, HBD, HBA, RotB, AromaticRings and HeavyAtoms.
+## Deploy frontend on Vercel
+1. Import this repository into Vercel.
+2. Framework: Next.js; Root Directory: `./`; Build command: `npm run build`.
+3. Add Environment Variable `TOXICITY_API_URL` = the Render service URL (for example `https://ai-drug-toxicity-api.onrender.com`).
+4. Redeploy after adding the environment variable.
 
-## Run locally
+## Local frontend
 ```bash
 npm install
 npm run dev
 ```
 
-## Vercel
-Import this repository. Select Next.js, keep Root Directory as `./`, and use `npm run build`.
+## Train/test and scientific notes
+The backend training script uses the public Tox21 benchmark internally; students do not upload or select datasets. DeepChem's Tox21 loader provides assay labels, where negative/missing values represent unmeasured entries and are excluded per endpoint during training. The script fits a final Random Forest for each endpoint using the available labelled benchmark compounds. This is a teaching screening model, not a validated clinical safety model. Its output probabilities are not calibrated clinical probabilities; predictions should be interpreted as endpoint-specific model estimates. For publication-grade use, run scaffold-split validation, report ROC-AUC/PR-AUC and calibration, tune thresholds, and externally validate.
 
-## Scientific limitations
-This is an educational baseline, not a validated drug-safety model. Tox21 labels are specific to individual in-vitro assays and do not establish clinical safety or toxicity. This version does not calculate descriptors from SMILES, render 2D/3D structures, automatically import Tox21, perform independent test-set validation, or persist student records to a shared database. Assessment data is limited to the current browser session. Do not use outputs for medical or regulatory decisions.
+## Model deployment note
+The Docker build trains models during image construction and may take several minutes. The resulting model artifact is bundled into the API image; no student-facing dataset upload is provided.
