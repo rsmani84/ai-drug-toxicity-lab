@@ -16,10 +16,11 @@ print("Downloading/loading Tox21 benchmark through DeepChem...")
 train, valid, test, transformers = dc.molnet.load_tox21(featurizer="ECFP", splitter="scaffold", reload=False)
 X = np.concatenate([ds.X for ds in (train, valid, test)], axis=0)
 y = np.concatenate([ds.y for ds in (train, valid, test)], axis=0)
+w = np.concatenate([ds.w for ds in (train, valid, test)], axis=0)
 models = {}
 for idx, endpoint in enumerate(ENDPOINTS):
     labels = y[:, idx]
-    mask = np.isfinite(labels) & (labels >= 0)
+    mask = (w[:, idx] > 0) & np.isfinite(labels) & (labels >= 0)
     x_task, y_task = X[mask], labels[mask].astype(int)
     if len(np.unique(y_task)) < 2:
         print(f"Skipping {endpoint}: insufficient class diversity")
